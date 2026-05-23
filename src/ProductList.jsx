@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from './CartSlice';
-import './ProductList.css'
+import './ProductList.css';
 import CartItem from './CartItem';
+
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
-    const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
+    const [showPlants, setShowPlants] = useState(false); 
+    const cartItems = useSelector(state => state.cart.items);
+    const dispatch = useDispatch();
+    const [addedToCart, setAddedToCart] = useState({});
+
+    const calculateTotalQuantity = () => { 
+        return cartItems ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0; 
+    };
 
     const plantsArray = [
         {
@@ -118,12 +126,6 @@ function ProductList({ onHomeClick }) {
                     cost: "$9"
                 },
                 {
-                    name: "Lavender",
-                    image: "https://images.unsplash.com/photo-1611909023032-2d6b3134ecba?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    description: "Calming scent, used in aromatherapy.",
-                    cost: "$20"
-                },
-                {
                     name: "Catnip",
                     image: "https://cdn.pixabay.com/photo/2015/07/02/21/55/cat-829681_1280.jpg",
                     description: "Repels mosquitoes and attracts cats.",
@@ -188,15 +190,9 @@ function ProductList({ onHomeClick }) {
                     cost: "$10"
                 },
                 {
-                    name: "Snake Plant",
-                    image: "https://cdn.pixabay.com/photo/2021/01/22/06/04/snake-plant-5939187_1280.jpg",
-                    description: "Needs infrequent watering and is resilient to most pests.",
-                    cost: "$15"
-                },
-                {
                     name: "Cast Iron Plant",
                     image: "https://cdn.pixabay.com/photo/2017/02/16/18/04/cast-iron-plant-2072008_1280.jpg",
-                    description: "Hardy plant that tolerates low light and neglect.",
+                    description: "Hardy plant that treats low light and neglect.",
                     cost: "$20"
                 },
                 {
@@ -214,26 +210,31 @@ function ProductList({ onHomeClick }) {
             ]
         }
     ];
+
+    // Corrected Typo here: alignIems -> alignItems
     const styleObj = {
         backgroundColor: '#4CAF50',
-        color: '#fff!important',
+        color: '#fff',
         padding: '15px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignIems: 'center',
+        alignItems: 'center', 
         fontSize: '20px',
-    }
+    };
+    
     const styleObjUl = {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '1100px',
-    }
+        listStyleType: 'none',
+    };
+    
     const styleA = {
         color: 'white',
         fontSize: '30px',
         textDecoration: 'none',
-    }
+    };
 
     const handleHomeClick = (e) => {
         e.preventDefault();
@@ -242,64 +243,97 @@ function ProductList({ onHomeClick }) {
 
     const handleCartClick = (e) => {
         e.preventDefault();
-        setShowCart(true); // Set showCart to true when cart icon is clicked
+        setShowCart(true); 
     };
+
     const handlePlantsClick = (e) => {
         e.preventDefault();
-        setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
-        setShowCart(false); // Hide the cart when navigating to About Us
+        setShowPlants(true); 
+        setShowCart(false); 
     };
 
     const handleContinueShopping = (e) => {
         e.preventDefault();
         setShowCart(false);
     };
-    const dispatch = useDispatch();
-    const [addedToCart, setAddedToCart] = useState({});
+
     const handleAddToCart = (product) => {
-        // 1. Send the plant object to your Redux global store
         dispatch(addItem(product)); 
-      
-        // 2. Update local state using the product name as a key to turn the button to "Added"
         setAddedToCart((prevState) => ({ 
           ...prevState, 
           [product.name]: true, 
         }));
-      };
-      return (
-        <div className="product-grid">
-          {plantsArray.map((category, index) => (
-            <div key={index}>
-              <h1>
-                <div>{category.category}</div>
-              </h1>
-              <div className="product-list">
-                {category.plants.map((plant, plantIndex) => (
-                  <div className="product-card" key={plantIndex}>
-                    <img 
-                      className="product-image" 
-                      src={plant.image} 
-                      alt={plant.name} 
-                    />
-                    <div className="product-title">{plant.name}</div>
-                    <div className="product-description">{plant.description}</div>
-                    <div className="product-cost">${plant.cost}</div>
-                    
-                    {/* Conditional rendering button: text changes if added to cart */}
-                    <button
-                      className="product-button"
-                      onClick={() => handleAddToCart(plant)}
-                      disabled={addedToCart[plant.name]} // Optional: disables button once clicked
-                    >
-                      {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}
-                    </button>
-                  </div>
-                ))}
-              </div>
+    };
+
+    return (
+        <div>
+            {/* Added: Navigation Bar UI Section Container */}
+            <div className="navbar" style={styleObj}>
+                <div className="tag">
+                    <div className="luxury">
+                        <a href="/" onClick={handleHomeClick} style={styleA}>
+                            <h3>Paradise Nursery</h3>
+                            <p>Where Greenery Meets Serenity</p>
+                        </a>
+                    </div>
+                </div>
+                <div style={styleObjUl}>
+                    <div>
+                        <a href="#" onClick={handlePlantsClick} style={styleA}>Plants</a>
+                    </div>
+                    <div>
+                        {/* Placed: The dynamic Redux Cart Quantity Counter Badge link */}
+                        <a href="#" onClick={handleCartClick} style={styleA}>
+                            <h1 className="cart">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '30px', height: '30px', marginRight: '10px'}}>
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                                Cart ({calculateTotalQuantity()})
+                            </h1>
+                        </a>
+                    </div>
+                </div>
             </div>
-          ))}
+
+            {/* Added: Conditional View Swapper (Shows Cart or Product Catalog Grid) */}
+            {showCart ? (
+                <CartItem onContinueShopping={handleContinueShopping} />
+            ) : (
+                <div className="product-grid">
+                    {plantsArray.map((category, index) => (
+                        <div key={index}>
+                            <h2 className="plant_category_title">{category.category}</h2>
+                            <div className="product-list">
+                                {category.plants.map((plant, plantIndex) => (
+                                    <div className="product-card" key={plantIndex}>
+                                        <img 
+                                            className="product-image" 
+                                            src={plant.image} 
+                                            alt={plant.name} 
+                                        />
+                                        <div className="product-title">{plant.name}</div>
+                                        <div className="product-description">{plant.description}</div>
+                                        {/* Fixed: Removed duplicate text '$' symbol since plant.cost contains it */}
+                                        <div className="product-cost">{plant.cost}</div>
+                                        
+                                        <button
+                                            className="product-button"
+                                            onClick={() => handleAddToCart(plant)}
+                                            disabled={addedToCart[plant.name]} 
+                                        >
+                                          {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
-      );
+    );
 }
 
 export default ProductList;
